@@ -1,6 +1,8 @@
 from connect4 import *
 import math
 
+player_turn = 1
+
 
 class Node:
     # In connect 4 the state is the current board setup for the node
@@ -17,16 +19,16 @@ def mcts(root_state, max_iterations):
     root_node.visits = 1
 
     for i in range(max_iterations):
-        print("Interation: ", i)
         node = root_node
 
         # traverse tree to leaf
         while node.children and not is_terminal(node.state):
+            # Select child node
             node = select_child(node)
+
         if not is_terminal(node.state):
+            # expand node
             child_nodes = expand(node)
-            for child_node in child_nodes:
-                print_board(child_node.state)
             node.children = child_nodes
 
             # simulation
@@ -66,17 +68,16 @@ def expand(node):
     child_nodes = []
 
     for col in valid_cols:
-        child_state = state.copy()  # Create a copy of the current state
+        child_state = np.copy(state)  # Create a copy of the current state
         row = get_valid_row(child_state, col)
-        drop_token(
-            child_state, row, col, 1 if np.count_nonzero(state == 0) % 2 == 0 else 2
-        )
+        drop_token(child_state, row, col, 1 if np.count_nonzero(state == 1) <= 2 else 2)
         child_nodes.append(Node(child_state, parent=node))
     return child_nodes
 
 
 def simulate(state):
     while True:
+        print_board(state)
         valid_cols = get_valid_cols(state)
         if not valid_cols:
             return 0  # Draw
@@ -100,7 +101,7 @@ def simulate(state):
 
 def backpropagate(node, result):
     # Update visits and values for all nodes along path back to root
-    while node.parent:
+    while node:
         node.visits += 1
         node.value += result
         node = node.parent
@@ -118,7 +119,10 @@ def select_best_child(node):
 
 def is_terminal(board):
     # check if the board is in a terminal state
-    return (not get_valid_cols(board)) or check_for_winner(board)
+    terminal = (not get_valid_cols(board)) or check_for_winner(board) != False
+    if not terminal:
+        print("Is terminal: ", terminal)
+    return terminal
 
 
 if __name__ == "__main__":
@@ -146,7 +150,9 @@ if __name__ == "__main__":
         0,
     )
     board = setup_board(4, 4)
-    best_child = mcts(test_board_2.copy(), 10000)
+    best_child = mcts(test_board_2.copy(), 100000)
+    print("Board")
+    print_board(test_board_2)
     print("Best Child")
     print_board(best_child)
     # print_board(best_child)
