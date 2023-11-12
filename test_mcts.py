@@ -1,11 +1,10 @@
-import pytest
 import numpy as np
 from mcts import (
     Node,
     mcts,
     is_terminal,
     select_child,
-    expand,
+    expand_node,
     simulate,
     backpropagate,
     select_best_child,
@@ -85,10 +84,10 @@ def test_select_child():
     assert selected_child in root_node.children
 
 
-def test_expand():
+def test_expand_node():
     state = np.zeros((6, 7), dtype=int)
     node = Node(state)
-    expanded_nodes = expand(node)
+    expanded_nodes = expand_node(node)
     assert expanded_nodes
     for child in expanded_nodes:
         assert isinstance(child, Node)
@@ -104,7 +103,7 @@ def test_simulate():
 def test_backpropagate():
     board = np.zeros((6, 7), dtype=int)
     root_node = Node(board)
-    root_node.children = expand(root_node)
+    root_node.children = expand_node(root_node)
 
     for child in root_node.children:
         backpropagate(child, 1)
